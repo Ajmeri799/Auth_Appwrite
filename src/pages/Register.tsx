@@ -6,6 +6,7 @@ import { validationSchema } from "@/schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AuthService from "@/appwrite/auth";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 const initialValues = {
   firstName: "",
   lastName: "",
@@ -15,15 +16,22 @@ const initialValues = {
 };
 
 function Register() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { values, errors, handleBlur, handleChange, handleSubmit, touched } =
     useFormik({
       initialValues: initialValues,
       validationSchema: validationSchema,
       onSubmit: async (value) => {
-        await AuthService.createAccount(value);
-        console.log(value);
-        navigate("/Login");
+        try {
+          await AuthService.createAccount(value);
+          console.log(value);
+          navigate("/Login");
+        } catch (error) {
+          setErrorMessage(
+            "A user with the same id, email, or phone already exists"
+          );
+        }
       },
     });
   return (
@@ -120,6 +128,9 @@ function Register() {
             </form>
           </CardContent>
         </Card>
+        {errorMessage && (
+          <p className="form-error text-red-600">{errorMessage}</p>
+        )}
         <p className="pt-5 pb-3"> do have an account ?</p>
         <Button
           className="w-28"
